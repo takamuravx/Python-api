@@ -1,51 +1,45 @@
-# بسم الله الرحمن الرحيم ✨
-# API Proxy Fetcher (FastAPI Version)
-
-from fastapi import FastAPI, Query
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 import requests
 import json
 
-app = FastAPI()
+# إعدادات الروتر
+router = APIRouter()
+path = "api/anime"
 
+name = "ANIME API"
+type = "public"
+url = "https://anslayer.com"
+logo = None  # يمكن تحطي رابط شعار إذا كان موجود
+
+# دالة جلب البيانات عبر بروكسي
 def fetch_api_via_proxy(api_url: str, proxy_url: str):
     """
-    جلب بيانات API عبر بروكسي
+    جلب بيانات من API عبر بروكسي
     """
     try:
         full_url = f"{proxy_url}/{api_url}"
-        print(f"جلب البيانات من: {full_url}")
-
         response = requests.get(full_url, timeout=10)
         response.raise_for_status()
-
         data = response.json()
         return data
-
     except requests.exceptions.RequestException as e:
         return {"error": f"خطأ في جلب البيانات: {e}"}
-
     except json.JSONDecodeError:
-        return {
-            "error": "JSON Decode Error",
-            "raw": response.text[:200]
-        }
+        return {"error": "خطأ في تحويل JSON", "raw": response.text[:200]}
 
+# الendpoint الرئيسي
+@router.get("/")
+async def get_anime():
+    # رابط API الأصلي
+    api_url = (
+        "https://anslayer.com/anime/public/animes/get-published-animes"
+        "?json=%7B%22_offset%22%3A0%2C%22_limit%22%3A30%2C%22_order_by%22%3A%22latest_first%22%2C%22list_type%22%3A%22latest_updated_episode_new%22%2C%22just_info%22%3A%22Yes%22%7D"
+    )
 
-@app.get("/fetch")
-async def fetch(
-    api_url: str = Query(..., description="رابط API الأصلي"),
-    proxy_url: str = Query("https://rpoxy.apis6.workers.dev", description="رابط البروكسي")
-):
-    """
-    API endpoint:
-    /fetch?api_url=xxxxx&proxy_url=xxxxx
-    """
+    # رابط البروكسي
+    proxy_url = "https://rpoxy.apis6.workers.dev"
+    # proxy_url = "https://corsproxy.io"  # نسخة بديلة
+
     data = fetch_api_via_proxy(api_url, proxy_url)
     return JSONResponse(content=data)
-
-
-# للران المحلي فقط
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=9000)
