@@ -3,9 +3,9 @@ from fastapi.responses import JSONResponse
 import requests
 import json
 
-# إعدادات الروتر
+# إعداد الروتر
 router = APIRouter()
-path = "api/anime"
+path = "/anime"
 
 name = "ANIME API"
 type = "public"
@@ -28,16 +28,13 @@ def fetch_api_via_proxy(api_url: str, proxy_url: str):
     except json.JSONDecodeError:
         return {"error": "خطأ في تحويل JSON", "raw": response.text[:200]}
 
-# الendpoint الرئيسي
+# endpoint الرئيسي
 @router.get("/")
 async def get_anime():
-    # رابط API الأصلي
     api_url = (
         "https://anslayer.com/anime/public/animes/get-published-animes"
         "?json=%7B%22_offset%22%3A0%2C%22_limit%22%3A30%2C%22_order_by%22%3A%22latest_first%22%2C%22list_type%22%3A%22latest_updated_episode_new%22%2C%22just_info%22%3A%22Yes%22%7D"
     )
-
-    # رابط البروكسي
     proxy_url = "https://rpoxy.apis6.workers.dev"
     # proxy_url = "https://corsproxy.io"  # نسخة بديلة
 
